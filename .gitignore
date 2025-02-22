@@ -37,19 +37,10 @@ log-config.json
 mrcon
 coverage.coverage
 locale
-# Persona Access Token
 .pat
-auth0_okta/users_import.json
-chat/tests/reports/sql
-/k8s/overlays/qa/us/qa-us-secrets.yaml
-/k8s/overlays/qa/gb/qa-gb-secrets.yaml
-/k8s/base/environment-properties.env
 build
-r.json
 docker/volumes/db_active
 .dev.*
 .python-version
 .nvim-dap.lua
 .*_cache
-docker/volumes/db/gb
-docker/volumes/db/us
