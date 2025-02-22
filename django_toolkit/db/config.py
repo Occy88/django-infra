@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import dataclasses
 import logging
 import os
+import pprint
 import subprocess
 import typing
 
@@ -76,7 +78,7 @@ class DatabaseConfig:
 
     @property
     def db_dump_path(self):
-        return os.path.join(os.getcwd(), "docker", f"{self.NAME}.psql")
+        return os.path.join(settings.BASE_DIR, "docker", f"{self.NAME}.psql")
 
     @property
     def dump_exists(self):
@@ -85,7 +87,7 @@ class DatabaseConfig:
     def apply_migrations(self):
         create_db_command = [
             "python",
-            "manage.py",
+            os.path.join(settings.BASE_DIR, "manage.py"),
             "migrate",
             "--database",
             self.CONNECTION_NAME,
@@ -138,13 +140,13 @@ class DatabaseConfig:
         else:
             # ask user if they want to drop the default db if it exists.
             # (in case of partial migrations, no need to restart from scratch)
-            if (
-                allow_input
-                and not config.database_exists
+            if allow_input and (
+                not config.database_exists
                 or input(f"Re-run all migrations on {config.NAME} db [n]:") == "y"
             ):
                 config.reset_database()
         # for some reason migrations can only be applied on a db named `default`...
+        print(config)
         config.apply_migrations()
         config.create_dump()
 
@@ -209,7 +211,7 @@ class DatabaseConfig:
     def all_migrations_applied(self) -> bool:
         command = [
             "python",
-            "manage.py",
+            os.path.join(settings.BASE_DIR, "manage.py"),
             "showmigrations",
             "--database",
             self.CONNECTION_NAME,
@@ -219,3 +221,8 @@ class DatabaseConfig:
         except subprocess.CalledProcessError:
             return False
         return "[ ]" not in output
+
+    def __str__(self):
+        data = dataclasses.asdict(self)
+        data.update(db_dump_path=self.db_dump_path)
+        return pprint.pformat(data)
