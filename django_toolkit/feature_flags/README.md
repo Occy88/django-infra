@@ -69,7 +69,7 @@ To ensure proper operation & minimal database load on retrieving feature flags:
 ```
 @pytest.fixture(scope="function", autouse=True)
 def clear_lru_caches():
-    db_get_or_create.cache_clear()
+    retrieve_feature_flag_from_db.cache_clear()
 ```
 
 **other:** Not supported, just make sure cache is cleared on a per-test basis.

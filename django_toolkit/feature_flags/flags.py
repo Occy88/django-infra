@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 @lru_cache  # this is popped in a post save signal on FeatureFlag.
-def db_get_or_create(*, key: str, active=False) -> "FeatureFlag":
+def retrieve_feature_flag_from_db(*, key: str, active=False) -> "FeatureFlag":
     from django_toolkit.feature_flags.models import FeatureFlag
 
     """Get feature flag value from db, Ensure sync is run once.
@@ -21,7 +21,7 @@ def db_get_or_create(*, key: str, active=False) -> "FeatureFlag":
 
 def register_feature_flag(flag_name, default=False) -> "FeatureFlag":
     return_val = property(
-        fget=lambda self: db_get_or_create(key=flag_name, active=default)
+        fget=lambda self: retrieve_feature_flag_from_db(key=flag_name, active=default)
     )
     return return_val
 

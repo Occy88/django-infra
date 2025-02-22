@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from django_toolkit.feature_flags.flags import (
-    db_get_or_create,
+    retrieve_feature_flag_from_db,
     flags,
     register_feature_flag,
 )
@@ -32,7 +32,7 @@ def user_client():
 
 @pytest.fixture(scope="function", autouse=True)
 def clear_lru_caches():
-    db_get_or_create.cache_clear()
+    retrieve_feature_flag_from_db.cache_clear()
 
 
 @pytest.fixture()

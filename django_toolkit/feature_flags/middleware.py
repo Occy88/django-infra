@@ -1,4 +1,4 @@
-from .flags import db_get_or_create
+from .flags import retrieve_feature_flag_from_db
 
 
 def feature_flags_cache_clear_middleware(get_response):
@@ -9,7 +9,7 @@ def feature_flags_cache_clear_middleware(get_response):
     """
 
     def middleware(request):
-        db_get_or_create.cache_clear()
+        retrieve_feature_flag_from_db.cache_clear()
         return get_response(request)
 
     return middleware
