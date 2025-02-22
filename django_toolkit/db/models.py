@@ -1,62 +1,44 @@
-from django.db import models as dm, DEFAULT_DB_ALIAS
+from django.db import DEFAULT_DB_ALIAS
+from django.db import models as dm
 
 
 class UpdatableModel(dm.Model):
-    """Add `update` on model to have orm-like experience & extra leverage over update.
-    The purpose of `UpdatableMixin` is to reduce boilerplate/common complexity
-    associated with updating an instance of a model.
+    """A model mixin providing an efficient update mechanism.
 
-    The 99% usecase of this model is as follows:
-    - bypass_orm: True says use queryset to update instead of instance to avoid
-    triggering signals.
-    - update: allows for multi-field setting just like you would with a queryset
-    without having to call save.
+    This mixin allows updating multiple fields in a single call. It supports:
+      - Direct database updates via the queryset (bypassing ORM signals) when
+        `bypass_orm` is True.
+      - Instance updates with signal triggering when `commit` is True.
 
-    Examples
-    ---------
-    >>> inst=UpdatableMixin()
-    >>> inst.update(field='new_val',field_2='other_val') # will update db just like
-    with save().
-    >>> inst.update(field='new_val',field_2='other_val',bypass_orm=True) # will use
-    manager to update db & won't trigger save signal.
-    >>> inst.update(field='new_val',field_2='other_val',commit=False) # won't update
-    db but will trigger save signal.
-
-
-    This addresses things such as:
-    - Updating an instance without triggering signals via `bypass_orm` flag
-        (although this should be named `use_orm` instead)
-    - updating multiple fields on an instance with or without committing it to the
-    database.
-    whilst still triggering signals.
-
-    Debt to address:
-    Make triggering signals explicit on save (when commit=False) i.e. don't just
-    imply that it's happening.
-    Rename `bypass_orm` to `use_queryset` instead.
-    perhaps some optimization on the update function (for loop) if necessary.
-
-
+    Examples:
+        inst = UpdatableModel()
+        inst.update(field='new_val', field_2='other_val')
+        inst.update(field='new_val', field_2='other_val', bypass_orm=True)
+        inst.update(field='new_val', field_2='other_val', commit=False)
     """
 
     class Meta:
         abstract = True
 
     def update(
-            self,
-            bypass_orm=False,
-            commit=True,
-            databases: list = None,
-            **fields,
+        self,
+        bypass_orm=False,
+        commit=True,
+        databases: list = None,
+        **fields,
     ) -> None:
-        """Update fields of a model's instance, triggering signals
-        Parameters
-        ----------
-        bypass_orm: exec update as SQL_UPDATE bypassing ORM features such as signals
-        fields
+        """Update one or more fields on the model instance.
 
-        Returns
-        -------
+        Parameters:
+            bypass_orm (bool): If True, performs a direct database update via queryset
+                               without triggering ORM signals.
+            commit (bool): If True, saves changes to the database after updating the instance.
+                           If False, updates the instance without saving to the database.
+            databases (list, optional): A list of database aliases to use when bypassing the ORM.
+            **fields: Field names and their new values.
+
+        Raises:
+            RuntimeError: If databases are specified without setting bypass_orm to True.
         """
         if databases and not bypass_orm:
             raise RuntimeError(
@@ -83,8 +65,11 @@ class UpdatableModel(dm.Model):
             self.save(update_fields=modified_fields)
 
     def save(self, *args, commit=True, **kwargs):
-        # Call the save method of the parent class (or mixins) to ensure all logic is
-        # executed
+        """Save the model instance.
+
+        If commit is False, triggers the pre-save signal without writing to the database.
+        Otherwise, performs a standard save.
+        """
         if not commit:
             dm.signals.pre_save.send(
                 sender=type(self),

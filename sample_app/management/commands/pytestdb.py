@@ -43,7 +43,7 @@ class Command(BaseCommand):
         -------
 
         """
-        from conftest import  refresh_test_db
+        from conftest import refresh_test_db
 
         setup_test_environment()
         self.connection = connections["default"]

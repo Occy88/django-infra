@@ -29,4 +29,3 @@ model-bakery = "^1.20.3"
 django-bulk-load = "^1.4.3"
 pre-commit = "^4.1.0"
 pydantic = "^2.10.6"
-

@@ -1,12 +1,15 @@
 from django.db import models as dm
+
 from django_toolkit.db.models import UpdatableModel
+
 
 class UpdatableTestModel(UpdatableModel):
     field1 = dm.CharField(max_length=100, default="", blank=True)
     field2 = dm.CharField(max_length=100, default="", blank=True)
 
     class Meta:
-        app_label = __package__.replace('.','_')
+        app_label = __package__.replace(".", "_")
+
 
 # -------------- BULK OPS MODELS ----------------------
 class BulkOpsTestModel(UpdatableModel):
@@ -14,15 +17,17 @@ class BulkOpsTestModel(UpdatableModel):
     updated_value = dm.IntegerField(null=True)
 
     class Meta:
-        app_label = __package__.replace('.','_')
+        app_label = __package__.replace(".", "_")
 
-# A somewhat complex scenario fo testing bulk operations.
+
+# A somewhat complex scenario for testing bulk operations.
+
 
 class Customer(UpdatableModel):
     name = dm.CharField(max_length=100)
 
     class Meta:
-        app_label = __package__.replace('.', '_')
+        app_label = __package__.replace(".", "_")
 
 
 class Product(UpdatableModel):
@@ -30,7 +35,7 @@ class Product(UpdatableModel):
     price = dm.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
-        app_label = __package__.replace('.', '_')
+        app_label = __package__.replace(".", "_")
 
 
 class OrderQuerySet(dm.QuerySet):
@@ -38,8 +43,8 @@ class OrderQuerySet(dm.QuerySet):
         return self.annotate(
             computed_total_annotation=dm.Sum(
                 dm.ExpressionWrapper(
-                    dm.F('orderitem__quantity') * dm.F('orderitem__product__price'),
-                    output_field=dm.DecimalField(max_digits=12, decimal_places=2)
+                    dm.F("orderitem__quantity") * dm.F("orderitem__product__price"),
+                    output_field=dm.DecimalField(max_digits=12, decimal_places=2),
                 )
             )
         )
@@ -61,7 +66,7 @@ class Order(UpdatableModel):
     objects = OrderManager()
 
     class Meta:
-        app_label = __package__.replace('.', '_')
+        app_label = __package__.replace(".", "_")
 
 
 class OrderItem(UpdatableModel):
@@ -70,4 +75,4 @@ class OrderItem(UpdatableModel):
     quantity = dm.IntegerField()
 
     class Meta:
-        app_label = __package__.replace('.', '_')
+        app_label = __package__.replace(".", "_")

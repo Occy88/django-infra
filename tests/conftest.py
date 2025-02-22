@@ -1,5 +1,3 @@
-import os
-
 import pytest
 from django import setup
 from django.apps import AppConfig, apps
@@ -9,7 +7,6 @@ from config import settings
 
 """Common file to load across all of pytest see conftest.pytest_plugins"""
 
-import pytest
 
 @pytest.fixture(scope="session")
 def apps_ready():
@@ -19,7 +16,7 @@ def apps_ready():
 
 @pytest.fixture(scope="session")
 def setup_test_app_factory(django_db_setup, django_db_blocker, apps_ready):
-    """Migrate models.py in a test directory creating migrations for useage in tests.
+    """Migrate models.py in a test directory creating migrations for usage in tests.
 
     Creates a temporary app based on the package name such that any directory
     can have a models.py file defining models for testing purposes only.
@@ -38,7 +35,7 @@ def setup_test_app_factory(django_db_setup, django_db_blocker, apps_ready):
             if package in apps.app_configs:
                 # already setup, just return.
                 return
-            app_config.label = package.replace('.','_')
+            app_config.label = package.replace(".", "_")
 
             apps.app_configs[app_config.label] = app_config
             app_config.import_models()
@@ -49,5 +46,5 @@ def setup_test_app_factory(django_db_setup, django_db_blocker, apps_ready):
             )
             call_command("migrate", app_config.label, interactive=False, verbosity=0)
             apps.clear_cache()
-    return inner
 
+    return inner

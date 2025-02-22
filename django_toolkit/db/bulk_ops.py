@@ -1,11 +1,15 @@
 import time
 
-from django.db import models as dm, connection
+from django.db import connection
+from django.db import models as dm
 
 
-def bulk_update_queryset(*, qs: dm.QuerySet,
-                         annotation_field_pairs: list[tuple[str, str]],
-                         batch_size=100_000):
+def bulk_update_queryset(
+    *,
+    qs: dm.QuerySet,
+    annotation_field_pairs: list[tuple[str, str]],
+    batch_size=100_000,
+):
     """Updates queryset fields based on annotations in bulk using postgres set.
     This is helpful for situations that require batching as subquery updates
     do not allow this.
@@ -24,10 +28,12 @@ def bulk_update_queryset(*, qs: dm.QuerySet,
 
     while updated < total:
         batch_start = time.time()
-        batch_qs = qs[updated:updated + batch_size].values(pk_name, *annotation_keys)
+        batch_qs = qs[updated : updated + batch_size].values(pk_name, *annotation_keys)
         compiler = batch_qs.query.get_compiler(using="default")
         sub_sql, sub_params = compiler.as_sql()
-        set_clause = ", ".join(f"{field} = sub.{ann}" for ann, field in annotation_field_pairs)
+        set_clause = ", ".join(
+            f"{field} = sub.{ann}" for ann, field in annotation_field_pairs
+        )
         sql = (
             f"UPDATE {model._meta.db_table} AS t SET {set_clause} "
             f"FROM ({sub_sql}) AS sub "
@@ -41,6 +47,8 @@ def bulk_update_queryset(*, qs: dm.QuerySet,
         print(
             f"Updated ({min(updated, total)/total*100:.2f}%) - rate {updated/elapsed:.2f}/s - batch {batch_elapsed:.2f}s time: {elapsed:.2f}s"
         )
+
+
 def annotate_defaults(qs, model_cls, provided_fields):
     defaults = {}
     for field in model_cls._meta.fields:
@@ -57,6 +65,7 @@ def annotate_defaults(qs, model_cls, provided_fields):
     if defaults:
         qs = qs.annotate(**defaults)
     return qs, list(defaults.keys())
+
 
 def bulk_create_from_annotations(model_cls, qsfrom, fto, ffrom, batch_size=100_000):
     """avg 20674.36 rows/s"""

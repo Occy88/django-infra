@@ -1,0 +1,47 @@
+exclude: &exclusions |
+  (?x)^(
+  .*data/.*|
+  schema.yml
+  )$
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.3.5
+    hooks:
+      # Run the linter.
+      - id: ruff
+        args: [ --fix ]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--filter-files"]
+
+  - repo: https://github.com/psf/black
+    rev: 24.4.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        exclude: ^.*\b(migrations)\b.*$
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        name: codespell
+        description: Checks for common misspellings in text files.
+        entry: codespell
+        language: python
+        types: [ text ]
+        args: [ -I, .ignore-spelling ]
+        exclude: >
+            (?x)^(
+                .*\.json|.*\.pyc|\.tox|.*\.csv|poetry\.lock
+            )$
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=no]

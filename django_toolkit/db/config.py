@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import logging
 import os
 import subprocess
@@ -6,15 +7,17 @@ import typing
 
 import pydantic
 from django.conf import settings
-
 from django.core.exceptions import ImproperlyConfigured
-from django.db import connections, OperationalError, transaction
+from django.db import OperationalError, connections, transaction
 
 from django_toolkit.env import run_command
 
-logger=logging.getLogger(__file__)
+logger = logging.getLogger(__file__)
 
-def get_db_config_from_connection_name(connection_name: str='default') -> DatabaseConfig:
+
+def get_db_config_from_connection_name(
+    connection_name: str = "default",
+) -> DatabaseConfig:
     assert connection_name in settings.DATABASES
     return DatabaseConfig(
         CONNECTION_NAME=connection_name, **settings.DATABASES[connection_name]
@@ -24,6 +27,7 @@ def get_db_config_from_connection_name(connection_name: str='default') -> Databa
 @pydantic.dataclasses.dataclass(config=pydantic.ConfigDict(extra="allow"))
 class DatabaseConfig:
     """Handle database related operations."""
+
     ENGINE: str
     NAME: str
     USER: str
@@ -79,7 +83,13 @@ class DatabaseConfig:
         return os.path.exists(self.db_dump_path)
 
     def apply_migrations(self):
-        create_db_command = ["python", "manage.py", "migrate", "--database", self.CONNECTION_NAME]
+        create_db_command = [
+            "python",
+            "manage.py",
+            "migrate",
+            "--database",
+            self.CONNECTION_NAME,
+        ]
         run_command(create_db_command, self.pg_env)
 
     def clone_database(self, to_config: DatabaseConfig):
@@ -113,7 +123,7 @@ class DatabaseConfig:
         self.drop_database()
         self.create_database()
 
-    def reset_database_from_dump(self,allow_input=False):
+    def reset_database_from_dump(self, allow_input=False):
         """Restore database from dump, apply migrations, update dump.
 
         In cases where a dump does not exist and input is allowed:
@@ -129,10 +139,9 @@ class DatabaseConfig:
             # ask user if they want to drop the default db if it exists.
             # (in case of partial migrations, no need to restart from scratch)
             if (
-                    allow_input and
-                    not config.database_exists
-                    or input(f"Re-run all migrations on {config.NAME} db [n]:")
-                    == "y"
+                allow_input
+                and not config.database_exists
+                or input(f"Re-run all migrations on {config.NAME} db [n]:") == "y"
             ):
                 config.reset_database()
         # for some reason migrations can only be applied on a db named `default`...
@@ -156,9 +165,10 @@ class DatabaseConfig:
 
     @property
     def database_exists(self):
-        exists_ok= self.check_database_connection()
+        exists_ok = self.check_database_connection()
         print(f"EXISTS OK: {exists_ok}")
         return exists_ok
+
     def create_database(self):
         create_db_command = [
             "createdb",
@@ -167,7 +177,7 @@ class DatabaseConfig:
         ]
         run_command(create_db_command, self.pg_env)
 
-    def drop_database(self,fail_silently=True):
+    def drop_database(self, fail_silently=True):
         self.terminate_db_connection()
         try:
             drop_db_command = [
@@ -186,9 +196,9 @@ class DatabaseConfig:
         try:
             db_conn.cursor()
         except (
-                OperationalError,
-                ImproperlyConfigured,
-                transaction.TransactionManagementError,
+            OperationalError,
+            ImproperlyConfigured,
+            transaction.TransactionManagementError,
         ):
             return False
         except Exception as e:
@@ -197,7 +207,13 @@ class DatabaseConfig:
         return True
 
     def all_migrations_applied(self) -> bool:
-        command = ["python", "manage.py", "showmigrations", "--database", self.CONNECTION_NAME]
+        command = [
+            "python",
+            "manage.py",
+            "showmigrations",
+            "--database",
+            self.CONNECTION_NAME,
+        ]
         try:
             output = subprocess.check_output(command, env=self.pg_env, text=True)
         except subprocess.CalledProcessError:
