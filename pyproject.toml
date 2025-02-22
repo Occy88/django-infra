@@ -1,0 +1,32 @@
+[project]
+name = "django-toolkit"
+version = "0.1.0"
+description = "A toolkit for Django engineers."
+authors = [
+    {name = "Octavio",email = "mail@octavio.sh"}
+]
+
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "psycopg (>=3.2.4,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+pytest-django = "^4.10.0"
+pytest-cov = "^6.0.0"
+pytest-xdist = "^3.6.1"
+pytest-profiling = "^1.8.1"
+snakeviz = "^2.2.2"
+ruff = "^0.9.6"
+model-bakery = "^1.20.3"
+django-bulk-load = "^1.4.3"
+pre-commit = "^4.1.0"
+pydantic = "^2.10.6"
+
