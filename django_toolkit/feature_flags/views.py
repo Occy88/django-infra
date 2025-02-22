@@ -23,17 +23,6 @@ class FeatureFlagViewSet(ModelViewSet):
         # won't sync on every call.
         return FeatureFlag.objects.all()
 
-    def _update_activation_status(self, should_activate):
-        # Check if update is necessary
-        flag = self.get_object()
-        if flag.active != should_activate:
-            flag.active = should_activate
-            flag.save()
-            data = {"status": f"feature flag set to {should_activate}"}
-        else:
-            data = {"status": f"feature flag {flag} already set to {should_activate}"}
-        return Response(data, status=status.HTTP_200_OK)
-
     @action(detail=False, methods=["post"], url_path="reset")
     def reset(self, request):
         FeatureFlag.objects.reset_env_flags()
@@ -41,8 +30,14 @@ class FeatureFlagViewSet(ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="activate")
     def activate(self, request, pk=None):
-        return self._update_activation_status(should_activate=True)
+        flag = self.get_object()
+        flag.update(active=True)
+        return Response(self.serializer_class(instance=flag).data,
+                        status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="deactivate")
     def deactivate(self, request, pk=None):
-        return self._update_activation_status(should_activate=False)
+        flag = self.get_object()
+        flag.update(active=False)
+        return Response(self.serializer_class(instance=flag).data,
+                        status=status.HTTP_200_OK)
