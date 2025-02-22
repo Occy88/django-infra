@@ -50,19 +50,19 @@ if FeatureFlags.TEST_CUSTOM_PARSER:
 
 To ensure proper operation & minimal database load on retrieving feature flags:
 
-1. Register application & CRUD.
-INSTALLED_APPS required:
-`django_toolkit.feature_flags`
+### Register application & CRUD.
 
-MIDDLEWARE required:
+**INSTALLED_APPS** [ required ]: `django_toolkit.feature_flags`
+
+**MIDDLEWARE** [ required ]:
 ```django_toolkit.feature_flags.middleware.feature_flags_cache_clear_middleware```
 
 
-urls.py: optional (for client-access of flags & admin management):
-path("feature-flags/", include("django_toolkit.feature_flags.urls")),
+**urls.py** [ optional ]: (for client-access of flags & admin management):
+`path("feature-flags/", include("django_toolkit.feature_flags.urls")),`
 
 
-2. TESTING: Add the following fixture to ensure cache is cleared per test:
+**TESTING:** Add the following fixture to ensure cache is cleared per test:
 
 **pytest:**
 ```
