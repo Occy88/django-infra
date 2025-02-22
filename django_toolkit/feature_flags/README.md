@@ -59,6 +59,7 @@ To ensure proper operation & minimal database load on retrieving feature flags:
 
 
 **urls.py** [ optional ]: (for client-access of flags & admin management):
+
 `path("feature-flags/", include("django_toolkit.feature_flags.urls")),`
 
 
