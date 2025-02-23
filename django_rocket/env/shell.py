@@ -4,7 +4,7 @@ import os
 import subprocess
 import typing
 
-from django_rocket.env.terminal_renderer import FixedHeightTerminal
+from django_infra.env.terminal_renderer import FixedHeightTerminal
 
 logger = logging.getLogger(__file__)
 def get_failure_msg(key, default, var, validation, allow_none):

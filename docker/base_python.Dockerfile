@@ -18,7 +18,7 @@ COPY pyproject.toml poetry.lock README.md ./
 
 RUN poetry install --no-interaction --no-ansi --no-root
 
-FROM dr_base AS final
+FROM di_base AS final
 # Append the custom directory to PATH, ensuring original executables take priority
 COPY --from=builder /usr/local/bin /usr/local/pybin
 ENV PATH="${PATH}:/usr/local/pybin"

@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from django_rocket.feature_flags.views import FeatureFlagViewSet
+from django_infra.feature_flags.views import FeatureFlagViewSet
 
 app_name = "feature_flags"
 

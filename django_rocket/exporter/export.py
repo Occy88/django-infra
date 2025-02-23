@@ -7,7 +7,7 @@ from django.core.files.storage import default_storage, FileSystemStorage
 from django.db.models import QuerySet
 from django.utils.crypto import get_random_string
 
-from django_rocket.exporter.models import QueryExport, ExportMetadata, ExportState
+from django_infra.exporter.models import QueryExport, ExportMetadata, ExportState
 
 EXPORT_BATCH_SIZE=10_000
 def generate_export_id(qs: QuerySet) -> str:

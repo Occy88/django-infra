@@ -12,7 +12,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db import OperationalError, connections, transaction
 
-from django_rocket.env import run_command
+from django_infra.env import run_command
 
 logger = logging.getLogger(__file__)
 

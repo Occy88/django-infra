@@ -1,9 +1,9 @@
 from model_bakery import baker
 
-from django_rocket.api.views import FilteredPartialResponseModelViewSet
-from django_rocket.exporter.models import QueryExport
-from django_rocket.exporter.views import QueryExportViewSet, QueryExportSerializer
-from django_rocket.testing.common import ModelViewTest
+from django_infra.api.views import FilteredPartialResponseModelViewSet
+from django_infra.exporter.models import QueryExport
+from django_infra.exporter.views import QueryExportViewSet, QueryExportSerializer
+from django_infra.testing.common import ModelViewTest
 
 
 def query_export_factory(**kwargs):

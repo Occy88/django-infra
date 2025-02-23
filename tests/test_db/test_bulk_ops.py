@@ -3,7 +3,7 @@ from django.db import models as dm
 from django.db import transaction
 from model_bakery import baker
 
-from django_rocket.db.bulk_ops import bulk_update_queryset
+from django_infra.db.bulk_ops import bulk_update_queryset
 from tests.test_db.models import BulkOpsTestModel, Customer, Order, OrderItem, Product
 
 

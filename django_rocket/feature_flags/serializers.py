@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from django_rocket.feature_flags.models import FeatureFlag
+from django_infra.feature_flags.models import FeatureFlag
 
 
 class FeatureFlagSerializer(serializers.ModelSerializer):
