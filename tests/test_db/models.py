@@ -1,6 +1,6 @@
 from django.db import models as dm
 
-from django_toolkit.db.models import UpdatableModel
+from django_rocket.db.models import UpdatableModel
 
 
 class UpdatableTestModel(UpdatableModel):

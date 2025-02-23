@@ -1,8 +1,8 @@
 from rest_framework.serializers import ModelSerializer
 
-from django_toolkit.api.views import FilteredPartialResponseModelViewSet
-from django_toolkit.exporter.models import QueryExport
-from django_toolkit.api import filters
+from django_rocket.api.views import FilteredPartialResponseModelViewSet
+from django_rocket.exporter.models import QueryExport
+from django_rocket.api import filters
 
 
 class QueryExportSerializer(ModelSerializer):
