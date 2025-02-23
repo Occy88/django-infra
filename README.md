@@ -2,6 +2,10 @@
 
 A collection of utilities to streamline Django development with enhanced testing, optimized database operations, and flexible queryset exporting.
 
+## Quality
+[![CI](https://github.com/Occy88/django-toolkit/actions/workflow/status/CI.yml?branch=main)](https://github.com/Occy88/django-toolkit/actions)
+[![Coverage](https://codecov.io/gh/Occy88/django-toolkit/branch/main/graph/badge.svg)](https://codecov.io/gh/Occy88/django-toolkit)
+
 ## Pytest Enhancements
 
 - Python-based database management avoids rebuilding migrations on every test run.
