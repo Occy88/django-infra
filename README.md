@@ -3,8 +3,8 @@
 A collection of utilities to streamline Django development with enhanced testing, optimized database operations, and flexible queryset exporting.
 
 ## Quality
-[![CI](https://github.com/Occy88/django-infra/actions/workflow/status/CI.yml?branch=main)](https://github.com/Occy88/django-infra/actions)
-[![Coverage](https://codecov.io/gh/Occy88/django-infra/branch/main/graph/badge.svg)](https://codecov.io/gh/Occy88/django-infra)
+[![codecov](https://codecov.io/gh/Occy88/django-infra/graph/badge.svg?token=ER1K5KC1WV)](https://codecov.io/gh/Occy88/django-infra)
+
 
 ## Pytest Enhancements
 
