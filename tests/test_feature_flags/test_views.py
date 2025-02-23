@@ -14,21 +14,6 @@ default_flag_name = "DEFAULT_FLAG"
 flags.DEFAULT_FLAG = register_feature_flag(default_flag_name, True)
 
 
-@pytest.fixture
-def admin_client():
-    client = APIClient()
-    client.user = baker.make(get_user_model(), is_staff=True)
-    client.force_authenticate(client.user)
-    return client
-
-
-@pytest.fixture
-def user_client():
-    client = APIClient()
-    client.user = baker.make(get_user_model())
-    client.force_authenticate(client.user)
-    return client
-
 
 @pytest.fixture(scope="function", autouse=True)
 def clear_lru_caches():

@@ -1,7 +1,10 @@
 import pytest
 from django import setup
 from django.apps import AppConfig, apps
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
+from model_bakery import baker
+from rest_framework.test import APIClient
 
 from config import settings
 
@@ -48,3 +51,20 @@ def setup_test_app_factory(django_db_setup, django_db_blocker, apps_ready):
             apps.clear_cache()
 
     return inner
+
+
+@pytest.fixture
+def admin_client():
+    client = APIClient()
+    client.user = baker.make(get_user_model(), is_staff=True)
+    client.force_authenticate(client.user)
+    return client
+
+
+@pytest.fixture
+def user_client():
+    client = APIClient()
+    client.user = baker.make(get_user_model())
+    client.force_authenticate(client.user)
+    return client
+
