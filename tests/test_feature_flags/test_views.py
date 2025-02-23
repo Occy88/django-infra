@@ -4,7 +4,7 @@ from model_bakery import baker
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from django_rocket.feature_flags.flags import (
+from django_infra.feature_flags.flags import (
     retrieve_feature_flag_from_db,
     flags,
     register_feature_flag,

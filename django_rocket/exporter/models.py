@@ -6,7 +6,7 @@ from functools import cached_property
 from django.db import models
 from django.db.models import TextChoices
 
-from django_rocket.db.models import UpdatableModel
+from django_infra.db.models import UpdatableModel
 
 
 class QueryExportManager(models.Manager):

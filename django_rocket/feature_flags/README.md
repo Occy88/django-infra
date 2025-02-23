@@ -5,7 +5,7 @@
 ### Registering flags:
 In `settings.py` or any other non-db scoped file:
 ```
-from django_rocket.feature_flags.flags import flags, register_feature_flag
+from django_infra.feature_flags.flags import flags, register_feature_flag
 # default to be used if os.env does not specify var.
 flags.MY_FLAG = register_feature_flag('MY_FLAG',default=True)
 ```
@@ -52,15 +52,15 @@ To ensure proper operation & minimal database load on retrieving feature flags:
 
 ### Register application & CRUD.
 
-**INSTALLED_APPS** [ required ]: `django_rocket.feature_flags`
+**INSTALLED_APPS** [ required ]: `django_infra.feature_flags`
 
 **MIDDLEWARE** [ required ]:
-```django_rocket.feature_flags.middleware.feature_flags_cache_clear_middleware```
+```django_infra.feature_flags.middleware.feature_flags_cache_clear_middleware```
 
 
 **urls.py** [ optional ]: (for client-access of flags & admin management):
 
-`path("feature-flags/", include("django_rocket.feature_flags.urls")),`
+`path("feature-flags/", include("django_infra.feature_flags.urls")),`
 
 
 **TESTING:** Add the following fixture to ensure cache is cleared per test:

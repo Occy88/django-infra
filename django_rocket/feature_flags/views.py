@@ -4,8 +4,8 @@ from rest_framework.permissions import SAFE_METHODS, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from django_rocket.feature_flags.models import FeatureFlag
-from django_rocket.feature_flags.serializers import FeatureFlagSerializer
+from django_infra.feature_flags.models import FeatureFlag
+from django_infra.feature_flags.serializers import FeatureFlagSerializer
 
 
 class IsAdminOrReadOnlyPermission(IsAdminUser):

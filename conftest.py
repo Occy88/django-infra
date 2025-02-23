@@ -1,4 +1,4 @@
-from django_rocket.db.config import get_db_config_from_connection_name
+from django_infra.db.config import get_db_config_from_connection_name
 
 
 def pytest_configure(config):

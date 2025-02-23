@@ -20,6 +20,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("feature-flags/", include("django_rocket.feature_flags.urls")),
-    path("exporter/", include("django_rocket.exporter.urls")),
+    path("feature-flags/", include("django_infra.feature_flags.urls")),
+    path("exporter/", include("django_infra.exporter.urls")),
 ]

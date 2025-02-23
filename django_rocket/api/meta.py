@@ -20,25 +20,25 @@ class FiltersetSerializerModelMetaClass(type):
         Examples
         --------
     import django_extras.filters    >>> # FilteredPartialResponseModelViewSet has a metaclass which inherits `FiltersetSerializerModelMetaClass`
-        >>> import django_rocket
+        >>> import django_infra
         >>> from my_app.models import TestModelRelations
         >>> from my_app.serializers import M2MModelSerializer, FKModelSerializer
-        >>> class OptimizedTestView(django_rocket.api.views.PaginatedViewMixin, django_rocket.api.views.FilteredPartialResponseModelViewSet):
+        >>> class OptimizedTestView(django_infra.api.views.PaginatedViewMixin, django_infra.api.views.FilteredPartialResponseModelViewSet):
         >>>     permission_classes = []
         >>>     authentication_classes = []
         >>>     model = TestModelRelations
         >>>     related_serializers_list = [M2MModelSerializer, FKModelSerializer]
         >>>     filters = [
-        >>>         django_rocket.api.filters.OrderingFilter(
+        >>>         django_infra.api.filters.OrderingFilter(
         >>>             name='ordering',
         >>>             fields=[
-        >>>                 django_rocket.api.filters.FilterField(internal='date_field',external='dateField'),
-        >>>                 django_rocket.api.filters.FilterField(internal='id'),
+        >>>                 django_infra.api.filters.FilterField(internal='date_field',external='dateField'),
+        >>>                 django_infra.api.filters.FilterField(internal='id'),
         >>>             ],
         >>>         ),
-        >>>         django_rocket.api.filters.IContainsFilter(
+        >>>         django_infra.api.filters.IContainsFilter(
         >>>             fields=[
-        >>>                 django_rocket.api.filters.MultiInternalFilterField(
+        >>>                 django_infra.api.filters.MultiInternalFilterField(
         >>>                     internal=['char_field','date_field'], external='search'
         >>>                 )
         >>>             ]

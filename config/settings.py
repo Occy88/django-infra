@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
-from django_rocket.env import load_env_val
+from django_infra.env import load_env_val
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,8 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "django_rocket.feature_flags",
-    "django_rocket.exporter",
+    "django_infra.feature_flags",
+    "django_infra.exporter",
 ]
 
 MIDDLEWARE = [
@@ -49,7 +49,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "django_rocket.feature_flags.middleware.feature_flags_cache_clear_middleware",
+    "django_infra.feature_flags.middleware.feature_flags_cache_clear_middleware",
 ]
 
 ROOT_URLCONF = "config.urls"
