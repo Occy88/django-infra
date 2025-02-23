@@ -2,9 +2,9 @@ from django.apps import AppConfig
 
 
 class ExporterConfig(AppConfig):
-    name = "django_toolkit.exporter"
+    name = "django_rocket.exporter"
 
     def ready(self):
         # load receivers
-        # import django_toolkit.exporter.receivers  # noqa F401
+        # import django_rocket.exporter.receivers  # noqa F401
         ...

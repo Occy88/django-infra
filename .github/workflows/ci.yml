@@ -65,6 +65,8 @@ jobs:
           . .env-ci
           set +a
           poetry run pytest --cov=. --cov-report=xml
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 

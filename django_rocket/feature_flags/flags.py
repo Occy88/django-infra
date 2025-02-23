@@ -5,12 +5,12 @@ from functools import lru_cache
 from typing import TYPE_CHECKING, Set
 
 if TYPE_CHECKING:
-    from django_toolkit.feature_flags.models import FeatureFlag
+    from django_rocket.feature_flags.models import FeatureFlag
 
 
 @lru_cache  # this is popped in a post save signal on FeatureFlag.
 def retrieve_feature_flag_from_db(*, key: str, active=False) -> "FeatureFlag":
-    from django_toolkit.feature_flags.models import FeatureFlag
+    from django_rocket.feature_flags.models import FeatureFlag
 
     """Get feature flag value from db, Ensure sync is run once.
     Property overriding every attribute in FeatureFlags, set by FeatureFlagsMeta"""
@@ -36,7 +36,7 @@ class FeatureFlags:
         >>> Flags.DEFAULT_FLAG=register_feature_flag('DEFAULT_FLAG',default=True),
         >>>
         >>> # somewhere else.
-        >>> from django_toolkit.feature_f1lags import FeatureFlags # noqa
+        >>> from django_rocket.feature_f1lags import FeatureFlags # noqa
         >>> def my_function(*args,**kwargs):
         >>>     if FeatureFlags.DEFAULT_FLAG:
         >>>         print("default flag is enable")
