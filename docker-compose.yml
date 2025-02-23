@@ -1,21 +1,21 @@
 services:
-  dt_base:
-    image: dt_base
+  dr_base:
+    image: dr_base
     build:
       context: .
       dockerfile: docker/base.Dockerfile
 
-  dt_base_python:
-    image: dt_base_python
+  dr_base_python:
+    image: dr_base_python
     build:
       context: .
       dockerfile: docker/base_python.Dockerfile
     depends_on:
-      - dt_base
+      - dr_base
 
-  dt_web: &dt_web
+  dr_web: &dr_web
     init: true
-    container_name: dt_web
+    container_name: dr_web
     build:
       context: .
       dockerfile: docker/web.Dockerfile
@@ -32,32 +32,32 @@ services:
       - '8001:8001' # jupyter notebook
 
     depends_on:
-      - dt_base_python
-      - dt_db
-      - dt_redis
+      - dr_base_python
+      - dr_db
+      - dr_redis
     command: python manage.py runserver 0.0.0.0:8000
 
-  dt_celery:
-    <<: *dt_web
-    container_name: dt_celery
+  dr_celery:
+    <<: *dr_web
+    container_name: dr_celery
     ports: [ ]
     env_file:
       - '.env'
-    command: python3 -m celery -A dt worker --loglevel INFO --pidfile /tmp/celery.pid
+    command: python3 -m celery -A dr worker --loglevel INFO --pidfile /tmp/celery.pid
 
-  dt_flower:
-    <<: *dt_web
-    container_name: dt_flower
+  dr_flower:
+    <<: *dr_web
+    container_name: dr_flower
     env_file:
       - '.env'
     ports:
       - "5555:5555"
-    command: python3 -m celery -A dt flower --url_prefix=flower --persistent=True --loglevel INFO --pidfile /tmp/flower.pid --db="/tmp/flower.db"
+    command: python3 -m celery -A dr flower --url_prefix=flower --persistent=True --loglevel INFO --pidfile /tmp/flower.pid --db="/tmp/flower.db"
 
-  dt_db:
+  dr_db:
     init: true
     image: postgres:14-alpine
-    container_name: dt_db
+    container_name: dr_db
     volumes:
       - ./docker/volumes/db_active/:/var/lib/postgresql/data:z
       - ./docker/volumes/db/:/_project_volume/
@@ -71,7 +71,7 @@ services:
     command:
       [ 'postgres', '-c', 'log_statement=all', '-c', 'log_destination=stderr' ,'-c','shared_buffers=1GB','-c', 'work_mem=128MB']
 
-  dt_redis:
+  dr_redis:
     init: true
     image: redis
-    container_name: dt_redis
+    container_name: dr_redis

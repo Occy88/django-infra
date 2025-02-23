@@ -6,7 +6,7 @@ from django.core.files.storage import default_storage
 from django.db import models as dm
 from model_bakery import baker
 
-from django_toolkit.exporter.export import export_queryset
+from django_rocket.exporter.export import export_queryset
 from tests.test_exporter.models import ExportRelatedTestModel, ExportTestModel
 
 
@@ -50,7 +50,7 @@ def test_export_batching_progress(export_data_factory, export_temp_file, monkeyp
     qs = ExportTestModel.objects.all()
     values = ["field1"]
     # Force batching by setting a low batch size.
-    monkeypatch.setattr("django_toolkit.exporter.export.EXPORT_BATCH_SIZE", 5)
+    monkeypatch.setattr("django_rocket.exporter.export.EXPORT_BATCH_SIZE", 5)
     export_obj = export_queryset(qs, values, file_path=export_temp_file)
     export_obj.refresh_from_db()
 
@@ -79,7 +79,7 @@ def test_export_unsupported_format(export_data_factory):
 def test_export_failure_during_processing(monkeypatch, export_data_factory, export_temp_file):
     def failing_handle_csv(fields, rows, file_obj):
         raise Exception("Simulated processing error")
-    monkeypatch.setattr("django_toolkit.exporter.export.handle_csv", failing_handle_csv)
+    monkeypatch.setattr("django_rocket.exporter.export.handle_csv", failing_handle_csv)
     export_data_factory(num=1)
     qs = ExportTestModel.objects.all()
     values = ["field1"]

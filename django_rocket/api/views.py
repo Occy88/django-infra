@@ -3,9 +3,9 @@ from typing import List
 from django.db import models
 from rest_framework import pagination, parsers, viewsets
 
-from django_toolkit.api.filters import Filter
-from django_toolkit.api.meta import FilteredPartialResponseModelViewSetMetaClass
-from django_toolkit.api.partial_response import OptimizedQuerySetAnnotationsMixin
+from django_rocket.api.filters import Filter
+from django_rocket.api.meta import FilteredPartialResponseModelViewSetMetaClass
+from django_rocket.api.partial_response import OptimizedQuerySetAnnotationsMixin
 
 
 class PaginatedViewMixin:

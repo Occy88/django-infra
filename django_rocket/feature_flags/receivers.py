@@ -1,8 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from django_toolkit.feature_flags.flags import retrieve_feature_flag_from_db
-from django_toolkit.feature_flags.models import FeatureFlag
+from django_rocket.feature_flags.flags import retrieve_feature_flag_from_db
+from django_rocket.feature_flags.models import FeatureFlag
 
 
 @receiver(post_save, sender=FeatureFlag)

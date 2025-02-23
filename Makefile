@@ -10,7 +10,7 @@ endif
 
 .PHONY: help docker_build docker_up docker_down docker_bash show_changed_files hooks
 .DEFAULT_GOAL: help
-EXEC_PREFIX = docker exec -it dt_web
+EXEC_PREFIX = docker exec -it dr_web
 DOCKER_COMPOSE = docker compose
 
 
@@ -42,7 +42,7 @@ help:
 	@printf $(HELP_TEXT)
 
 shell:
-	@python manage.py shell_plus --settings=dt.read_only_settings
+	@python manage.py shell_plus --settings=dr.read_only_settings
 
 
 setup:
