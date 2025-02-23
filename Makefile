@@ -87,3 +87,6 @@ merge-env:
 
 set-test:
 	$(MAKE) merge-env file1=.env-dev-example file2=.env.test
+
+set-local:
+	$(MAKE) merge-env file1=.env-dev-example file2=.env.local
