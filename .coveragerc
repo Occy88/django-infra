@@ -1,6 +1,5 @@
 [run]
 branch = True
 data_file = coverage.coverage
-source = django_infra
 omit =
     */migrations/*

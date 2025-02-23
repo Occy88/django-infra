@@ -66,9 +66,10 @@ docker-up:
 test:
 	@echo -e "$(WARNING)===[ RESETTING test_default.psql wait for migrations to apply ]===$(COFF)"
 	#git checkout origin/master docker/test_default.psql
+	rm -rf coverage.coverage
 	make set-test
 	@make docker-up
-	$(EXEC_PREFIX) python3 -m pytest --durations=30 --disable-warnings $(args) $(path) || exit 1
+	$(EXEC_PREFIX) python3 -m pytest --cov=. --cov-report=xml --durations=30 --disable-warnings $(args) $(path) || exit 1
 
 .env: .env-dev-example
 	@if [ ! -f .env ]; then \
