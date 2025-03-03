@@ -131,24 +131,22 @@ class DatabaseConfig:
         In cases where a dump does not exist and input is allowed:
         An existing database may optionally be fully reset for migration rebuild.
         """
-        config = get_db_config_from_connection_name()
         # If a dump exists, drop default & test to restore both.
-        if config.dump_exists:
-            config.restore_dump()
-            if config.all_migrations_applied():
+        if self.dump_exists:
+            self.restore_dump()
+            if self.all_migrations_applied():
                 return
         else:
             # ask user if they want to drop the default db if it exists.
             # (in case of partial migrations, no need to restart from scratch)
             if allow_input and (
-                not config.database_exists
-                or input(f"Re-run all migrations on {config.NAME} db [n]:") == "y"
+                not self.database_exists
+                or input(f"Re-run all migrations on {self.NAME} db [n]:") == "y"
             ):
-                config.reset_database()
+                self.reset_database()
         # for some reason migrations can only be applied on a db named `default`...
-        print(config)
-        config.apply_migrations()
-        config.create_dump()
+        self.apply_migrations()
+        self.create_dump()
 
     def restore_dump(self):
         """Restores database from locally stored dump."""
