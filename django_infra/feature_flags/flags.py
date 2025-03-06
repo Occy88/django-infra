@@ -4,6 +4,8 @@ import dataclasses
 from functools import lru_cache
 from typing import TYPE_CHECKING, Set
 
+from django_infra.env import load_env_val
+
 if TYPE_CHECKING:
     from django_infra.feature_flags.models import FeatureFlag
 
@@ -21,7 +23,9 @@ def retrieve_feature_flag_from_db(*, key: str, active=False) -> "FeatureFlag":
 
 def register_feature_flag(flag_name, default=False) -> "FeatureFlag":
     return_val = property(
-        fget=lambda self: retrieve_feature_flag_from_db(key=flag_name, active=default)
+        fget=lambda self: retrieve_feature_flag_from_db(
+            key=flag_name, active=load_env_val(flag_name, default=default)
+        )
     )
     return return_val
 

@@ -8,7 +8,6 @@ from django.db import models as dm
 from django_filters import rest_framework as filters
 
 
-
 def field_supports_partial_matching(model, field_name):
     """True if field (nested or not) supports partial matching.
 
@@ -346,7 +345,6 @@ class IContainsFilter(Filter):
         return d
 
 
-
 def format_regex(value: str) -> str:
     """
     Creates an ORM readable regex string, escaping all initial
@@ -358,6 +356,7 @@ def format_regex(value: str) -> str:
     value = value.replace("\\*", ".*")
 
     return value
+
 
 class WildcardFilter(filters.CharFilter):
     def filter(self, qs, value):
@@ -394,6 +393,8 @@ class WildcardFilter(filters.CharFilter):
         qs = qs.filter(**{f"{self.field_name}__iregex": value})
 
         return qs
+
+
 class ExactMatchFilter(Filter):
     fields: List[TypedFilterField]
 

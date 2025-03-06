@@ -67,4 +67,3 @@ def user_client():
     client.user = baker.make(get_user_model())
     client.force_authenticate(client.user)
     return client
-

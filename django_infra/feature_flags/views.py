@@ -32,12 +32,14 @@ class FeatureFlagViewSet(ModelViewSet):
     def activate(self, request, pk=None):
         flag = self.get_object()
         flag.update(active=True)
-        return Response(self.serializer_class(instance=flag).data,
-                        status=status.HTTP_200_OK)
+        return Response(
+            self.serializer_class(instance=flag).data, status=status.HTTP_200_OK
+        )
 
     @action(detail=True, methods=["post"], url_path="deactivate")
     def deactivate(self, request, pk=None):
         flag = self.get_object()
         flag.update(active=False)
-        return Response(self.serializer_class(instance=flag).data,
-                        status=status.HTTP_200_OK)
+        return Response(
+            self.serializer_class(instance=flag).data, status=status.HTTP_200_OK
+        )

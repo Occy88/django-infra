@@ -7,8 +7,8 @@ import typing
 class FixedHeightTerminal:
     """Consume and display IO into a fixed height terminal window."""
 
-    def __init__(self, max_height: int = 5,display_output=True):
-        self.display_output=display_output
+    def __init__(self, max_height: int = 5, display_output=True):
+        self.display_output = display_output
         self.max_height = max_height
         self.buffer: typing.List[str] = []
         self.max_buffer_length = 100
@@ -71,4 +71,3 @@ class FixedHeightTerminal:
             return
         cleanup_count = min(len(self.buffer), self.max_height)
         self.std_write(f"\033[{cleanup_count}F")
-
