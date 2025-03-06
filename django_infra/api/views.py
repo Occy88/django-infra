@@ -17,6 +17,7 @@ class PaginatedViewMixin:
     pagination_class = pagination.LimitOffsetPagination
     pagination_class.default_limit = 20
 
+
 class FilteredPartialResponseModelViewSet(
     OptimizedQuerySetAnnotationsMixin,
     viewsets.ModelViewSet,
@@ -37,4 +38,3 @@ class FilteredPartialResponseModelViewSet(
                 f"Specify `model` attr when using OptimizedModelViewSet for `{cls}"
             )
         super().__init_subclass__(**kwargs)
-

@@ -7,6 +7,8 @@ import typing
 from django_infra.env.terminal_renderer import FixedHeightTerminal
 
 logger = logging.getLogger(__file__)
+
+
 def get_failure_msg(key, default, var, validation, allow_none):
     return "\n".join(
         [
@@ -17,6 +19,7 @@ def get_failure_msg(key, default, var, validation, allow_none):
             f"allow_none:{allow_none}",
         ]
     )
+
 
 def load_env_val(
     key: str, default=None, allow_none=False, validation: typing.Callable = None
@@ -53,8 +56,6 @@ def load_env_val(
     return var
 
 
-
-
 def run_command(command: typing.List[str], env: dict = None, background=False) -> None:
     """
     Execute a command with output in a fixed-height window.
@@ -87,4 +88,3 @@ def run_command(command: typing.List[str], env: dict = None, background=False) -
             raise RuntimeError(
                 f"code: {proc.returncode} {exec_command} {' '.join(window.buffer)}"
             )
-

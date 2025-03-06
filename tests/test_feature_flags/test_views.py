@@ -1,18 +1,16 @@
+import os
+
 import pytest
-from django.contrib.auth import get_user_model
-from model_bakery import baker
 from rest_framework import status
-from rest_framework.test import APIClient
 
 from django_infra.feature_flags.flags import (
-    retrieve_feature_flag_from_db,
     flags,
     register_feature_flag,
+    retrieve_feature_flag_from_db,
 )
 
 default_flag_name = "DEFAULT_FLAG"
 flags.DEFAULT_FLAG = register_feature_flag(default_flag_name, True)
-
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -63,6 +61,13 @@ def test_patch_feature_flag_true_ok(db, default_flag, admin_client):
     assert default_flag.active
     assert default_flag.value == 2
     assert default_flag.value_str == "test"
+
+
+def test_register_flag(db):
+    flag_name = "TEST_FLAG"
+    os.environ.setdefault(flag_name, "_json_true")
+    flags.TEST_OFF = register_feature_flag("TEST_FLAG", default=False)
+    assert bool(flags.TEST_OFF)
 
 
 def test_patch_feature_flag_false_ok(db, default_flag, admin_client):
