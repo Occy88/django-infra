@@ -80,6 +80,7 @@ def run_command(command: typing.List[str], env: dict = None, background=False) -
         env=env,
     )
     if not background:
+        proc.wait()
         window = FixedHeightTerminal(max_height=10)
         window.collect_output(proc.stdout.readlines)
         proc.wait()
@@ -88,3 +89,4 @@ def run_command(command: typing.List[str], env: dict = None, background=False) -
             raise RuntimeError(
                 f"code: {proc.returncode} {exec_command} {' '.join(window.buffer)}"
             )
+    proc.communicate()
