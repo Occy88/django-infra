@@ -1,6 +1,6 @@
 [project]
 name = "django-infra"
-version = "0.1.4"
+version = "0.1.5"
 description = "A infra for Django engineers."
 authors = [
     {name = "Octavio",email = "mail@octavio.sh"}
@@ -37,3 +37,4 @@ pre-commit = "^4.1.0"
 
 [tool.poetry.group.test.dependencies]
 pre-commit = "^4.1.0"
+pytest-mock = "^3.14.0"
