@@ -4,8 +4,6 @@ import os
 import subprocess
 import typing
 
-from django_infra.env.terminal_renderer import FixedHeightTerminal
-
 logger = logging.getLogger(__file__)
 
 
@@ -59,6 +57,7 @@ def load_env_val(
 def run_command(command: typing.List[str], env: dict = None, background=False) -> None:
     """
     Execute a command with output in a fixed-height window.
+    Prints all output only on failure, otherwise remains silent.
     Raises CalledProcessError on failure with last output lines.
     """
 
@@ -66,11 +65,15 @@ def run_command(command: typing.List[str], env: dict = None, background=False) -
     exec_command = " ".join(list(map(str, command)))
 
     logger.info(f"[ {command_style} EXECUTING: {exec_command}\033[0m ]")
+
+    # Configure process parameters based on background flag
     stdout = subprocess.PIPE
     stderr = subprocess.STDOUT
     if background:
         stdout = subprocess.DEVNULL
         stderr = subprocess.DEVNULL
+
+    # Initialize process once
     proc = subprocess.Popen(
         command,
         stdout=stdout,
@@ -79,14 +82,19 @@ def run_command(command: typing.List[str], env: dict = None, background=False) -
         bufsize=1,
         env=env,
     )
-    if not background:
-        proc.wait()
-        window = FixedHeightTerminal(max_height=10)
-        window.collect_output(proc.stdout.readlines)
-        proc.wait()
-        if proc.returncode != 0:
-            window.print_buffer()
-            raise RuntimeError(
-                f"code: {proc.returncode} {exec_command} {' '.join(window.buffer)}"
-            )
-    proc.communicate()
+
+    # For background processes, don't wait
+    if background:
+        return
+
+    # For foreground processes, capture output and check return code
+    stdout_data, _ = proc.communicate()
+    output_lines = stdout_data.splitlines() if stdout_data else []
+
+    # If command failed, print all captured output and raise exception
+    if proc.returncode != 0:
+        for line in output_lines:
+            print(line)
+        raise subprocess.CalledProcessError(
+            proc.returncode, command, output=stdout_data
+        )

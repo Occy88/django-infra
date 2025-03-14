@@ -37,6 +37,7 @@ class DatabaseConfig:
     HOST: str
     PORT: int
     CONNECTION_NAME: str = None
+    DUMP_ROOT = os.path.join(settings.BASE_DIR, "docker")
 
     def update(self, update_settings=False, **kwargs):
         """Updates config and optionally settings as well to match."""
@@ -78,7 +79,7 @@ class DatabaseConfig:
 
     @property
     def db_dump_path(self):
-        return os.path.join(settings.BASE_DIR, "docker", f"{self.NAME}.psql")
+        return os.path.join(self.DUMP_ROOT, f"{self.NAME}.psql")
 
     @property
     def dump_exists(self):
@@ -91,6 +92,14 @@ class DatabaseConfig:
             "migrate",
             "--database",
             self.CONNECTION_NAME,
+        ]
+        run_command(create_db_command, self.pg_env)
+
+    def makemigrations(self):
+        create_db_command = [
+            "python",
+            os.path.join(settings.BASE_DIR, "manage.py"),
+            "makemigrations",
         ]
         run_command(create_db_command, self.pg_env)
 
@@ -134,7 +143,7 @@ class DatabaseConfig:
         # If a dump exists, drop default & test to restore both.
         if self.dump_exists:
             self.restore_dump()
-            if self.all_migrations_applied():
+            if self.makemigrations_applied() and self.all_migrations_applied():
                 return
         else:
             # ask user if they want to drop the default db if it exists.
@@ -145,6 +154,7 @@ class DatabaseConfig:
             ):
                 self.reset_database()
         # for some reason migrations can only be applied on a db named `default`...
+        self.makemigrations()
         self.apply_migrations()
         self.create_dump()
 
@@ -166,7 +176,6 @@ class DatabaseConfig:
     @property
     def database_exists(self):
         exists_ok = self.check_database_connection()
-        print(f"EXISTS OK: {exists_ok}")
         return exists_ok
 
     def create_database(self):
@@ -219,6 +228,19 @@ class DatabaseConfig:
         except subprocess.CalledProcessError:
             return False
         return "[ ]" not in output
+
+    def makemigrations_applied(self) -> bool:
+        command = [
+            "python",
+            os.path.join(settings.BASE_DIR, "manage.py"),
+            "makemigrations",
+            "--check",
+        ]
+        try:
+            run_command(command)
+            return True
+        except subprocess.CalledProcessError:
+            return False
 
     def __str__(self):
         data = dataclasses.asdict(self)
