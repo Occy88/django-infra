@@ -44,21 +44,17 @@ help:
 shell:
 	@python manage.py shell_plus --settings=di.read_only_settings
 
-
 setup:
-	@echo -e "$(INFO)Rebuilding docker$(COFF)"
+	@echo "$(INFO)Rebuilding docker$(COFF)"
 	$(DOCKER_COMPOSE) down -v
-ifeq ($(shell uname -s),Darwin)
-	@echo -e "$(INFO)Running on macOS, skipping USER_ID and GROUP_ID setting"
-	DOCKER_DEFAULT_PLATFORM=linux/arm64 $(DOCKER_COMPOSE) build $(cmd) --build-arg POETRY_GROUPS=dev,web,test
-else
-	@echo -e "$(INFO)Not running on macOS, setting USER_ID and GROUP_ID"
-	$(DOCKER_COMPOSE) build $(cmd) --build-arg USER_ID=$(shell id -u) --build-arg GROUP_ID=$(shell id -g) --build-arg POETRY_GROUPS=dev,web,test
-endif
-	@make docker-up
-	@echo -e "$(FORMAT)\n\n=============[$(BOLD)$(SUCCESS) SETUP SUCCEEDED $(FORMAT)]========================="
-	@echo -e "$(INFO)Run 'make setup_data' to collect staticfiles.$(COFF)"
-	@echo -e "$(INFO)Run 'make run cmd=< -d >' to start Django development server.$(COFF)"
+	make down
+	$(DOCKER_COMPOSE) build $(cmd) --build-arg UID=$(shell id -u) --build-arg GID=$(shell id -g) --build-arg POETRY_GROUPS=dev,test
+	$(DOCKER_COMPOSE) up -d
+	@echo "$(FORMAT)\n\n=============[$(BOLD)$(SUCCESS) SETUP SUCCEEDED $(FORMAT)]========================="
+	@echo "$(INFO) Run 'make run cmd=< -d >' to start Django development server.$(COFF)"
+
+down:
+	docker compose down -v
 
 docker-up:
 	docker compose up -d
@@ -67,7 +63,7 @@ test:
 	@echo -e "$(WARNING)===[ RESETTING test_default.psql wait for migrations to apply ]===$(COFF)"
 	#git checkout origin/master docker/test_default.psql
 	rm -rf coverage.coverage
-	make set-test
+	-@make set-test
 	@make docker-up
 	$(EXEC_PREFIX) python3 -m pytest --cov=. --cov-report=xml --durations=30 --disable-warnings $(args) $(path) || exit 1
 
@@ -91,3 +87,6 @@ set-test:
 
 set-local:
 	$(MAKE) merge-env file1=.env-dev-example file2=.env.local
+
+lint:
+	poetry run pre-commit run --all-files

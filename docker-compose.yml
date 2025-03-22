@@ -1,40 +1,23 @@
 services:
-  di_base:
-    image: di_base
-    build:
-      context: .
-      dockerfile: docker/base.Dockerfile
-
-  di_base_python:
-    image: di_base_python
-    build:
-      context: .
-      dockerfile: docker/base_python.Dockerfile
-    depends_on:
-      - di_base
-
   di_web: &di_web
     init: true
+    image: di_web
     container_name: di_web
     build:
       context: .
-      dockerfile: docker/web.Dockerfile
+      dockerfile: Dockerfile
     env_file:
       - '.env'
     volumes:
-      - .:/home/app/web:z
-      - ./docker/volumes/web/:/_project_volume/
-      - ${HOME}/.aws:/nonexistent/.aws
+      - .:/home/app/src
     ports:
       - '8000:8000'
       - '5678:5678' # debugging
       - '5679:5679' # debugging tests
       - '8001:8001' # jupyter notebook
-
     depends_on:
-      - di_base_python
-      - di_db
-      - di_redis
+      - postgres
+      - redis
     command: python manage.py runserver 0.0.0.0:8000
 
   di_celery:
@@ -54,13 +37,12 @@ services:
       - "5555:5555"
     command: python3 -m celery -A di flower --url_prefix=flower --persistent=True --loglevel INFO --pidfile /tmp/flower.pid --db="/tmp/flower.db"
 
-  di_db:
+  postgres:
     init: true
     image: postgres:14-alpine
-    container_name: di_db
+    container_name: postgres
     volumes:
-      - ./docker/volumes/db_active/:/var/lib/postgresql/data:z
-      - ./docker/volumes/db/:/_project_volume/
+      - ./docker/volumes/db_active/:/var/lib/postgresql/data
     ports:
       # if env var HOST_POSTGRES_PORT is defined, will expose on host machine
       # for easily connecting with external tools
@@ -71,7 +53,7 @@ services:
     command:
       [ 'postgres', '-c', 'log_statement=all', '-c', 'log_destination=stderr' ,'-c','shared_buffers=1GB','-c', 'work_mem=128MB']
 
-  di_redis:
+  redis:
     init: true
     image: redis
-    container_name: di_redis
+    container_name: redis

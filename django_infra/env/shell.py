@@ -54,12 +54,16 @@ def load_env_val(
     return var
 
 
-def run_command(command: typing.List[str], env: dict = None, background=False) -> None:
+def run_command(
+    command: str | typing.List[str], env: dict = None, background=False
+) -> subprocess.Popen[str]:
     """
     Execute a command with output in a fixed-height window.
     Prints all output only on failure, otherwise remains silent.
     Raises CalledProcessError on failure with last output lines.
     """
+    if isinstance(command, str):
+        command = command.split(" ")
 
     command_style = "\033[38;5;45m"
     exec_command = " ".join(list(map(str, command)))
@@ -85,7 +89,7 @@ def run_command(command: typing.List[str], env: dict = None, background=False) -
 
     # For background processes, don't wait
     if background:
-        return
+        return proc
 
     # For foreground processes, capture output and check return code
     stdout_data, _ = proc.communicate()
@@ -98,3 +102,4 @@ def run_command(command: typing.List[str], env: dict = None, background=False) -
         raise subprocess.CalledProcessError(
             proc.returncode, command, output=stdout_data
         )
+    return proc
