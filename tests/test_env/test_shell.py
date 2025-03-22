@@ -20,6 +20,15 @@ class TestRunCommand:
         captured = capfd.readouterr()
         assert captured.out == "", "Successful command should not print output"
 
+    def test_splits_string_arg(self, capfd):
+        """Test that successful commands don't print output."""
+        # Run a command that succeeds (echo)
+        run_command("echo Hello World")
+
+        # Check that nothing was printed to stdout
+        captured = capfd.readouterr()
+        assert captured.out == "", "Successful command should not print output"
+
     def test_failed_command_prints_output(self, capfd):
         """Test that failed commands print their output."""
         # Run a command that fails (non-existing command)
