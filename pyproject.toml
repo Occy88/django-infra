@@ -1,6 +1,6 @@
 [project]
 name = "django-infra"
-version = "0.1.6"
+version = "0.1.7"
 description = "A infra for Django engineers."
 authors = [
     {name = "Octavio",email = "mail@octavio.sh"}

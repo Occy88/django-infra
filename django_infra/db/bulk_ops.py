@@ -1,21 +1,27 @@
+import logging
 import time
 
 from django.db import connection
-from django.db import models as dm
 
 
-def bulk_update_queryset(
-    *,
-    qs: dm.QuerySet,
-    annotation_field_pairs: list[tuple[str, str]],
-    batch_size=100_000,
-):
-    """Updates queryset fields based on annotations in bulk using postgres set.
-    This is helpful for situations that require batching as subquery updates
-    do not allow this.
-    Examples:
-        >>> bulk_update_queryset(qs=qs,annotation_field_pairs=[('_my_field',
-        >>> 'my_field'),('_my_custom_annotation','my_other_field')])
+def bulk_update_queryset(*, qs, annotation_field_pairs, batch_size=100_000):
+    """
+    Updates queryset fields based on annotations in bulk using a PostgreSQL set update.
+    This function avoids offset-based slicing by batching based on primary keys.
+    It ensures deterministic and performant execution by progressively iterating
+    over primary key ranges.
+
+    Args:
+        qs (QuerySet): Base queryset to update.
+        annotation_field_pairs (list[tuple[str, str]]): List of tuples pairing annotation names
+                                                        with the fields to update.
+        batch_size (int, optional): Number of rows per batch. Defaults to 100,000.
+
+    Usage example:
+        >>> bulk_update_queryset(
+                qs=MyModel.objects.filter(field__isnull=True),
+                annotation_field_pairs=[('_annotation', 'field')]
+            )
     """
     qs = qs.order_by(qs.model._meta.pk.name)
     model = qs.model
@@ -26,26 +32,40 @@ def bulk_update_queryset(
 
     annotation_keys = [ann for ann, field in annotation_field_pairs]
 
-    while updated < total:
-        batch_start = time.time()
-        batch_qs = qs[updated : updated + batch_size].values(pk_name, *annotation_keys)
+    last_pk = None
+    while True:
+        batch_filter = {f"{pk_name}__gt": last_pk} if last_pk else {}
+        batch_qs = qs.filter(**batch_filter).values(pk_name, *annotation_keys)[
+            :batch_size
+        ]
         compiler = batch_qs.query.get_compiler(using="default")
         sub_sql, sub_params = compiler.as_sql()
         set_clause = ", ".join(
             f"{field} = sub.{ann}" for ann, field in annotation_field_pairs
         )
+
         sql = (
+            f"WITH batch AS ({sub_sql}) "
             f"UPDATE {model._meta.db_table} AS t SET {set_clause} "
-            f"FROM ({sub_sql}) AS sub "
-            f"WHERE t.{pk_name} = sub.{pk_name}"
+            f"FROM batch AS sub "
+            f"WHERE t.{pk_name} = sub.{pk_name} "
+            f"RETURNING t.{pk_name}"
         )
+
         with connection.cursor() as cursor:
             cursor.execute(sql, sub_params)
-        updated += batch_size
-        batch_elapsed = time.time() - batch_start
+            rows = cursor.fetchall()
+            batch_updated = len(rows)
+
+        if batch_updated == 0:
+            break
+
+        updated += batch_updated
+        last_pk = rows[-1][0]  # last pk from returned rows
         elapsed = time.time() - start_time
-        print(
-            f"Updated ({min(updated, total)/total*100:.2f}%) - rate {updated/elapsed:.2f}/s - batch {batch_elapsed:.2f}s time: {elapsed:.2f}s"
+        rate = updated / elapsed if elapsed > 0 else 0
+        logging.info(
+            f"Updated {updated} of {total} ({updated / total * 100:.2f}%) - elapsed {elapsed:.2f}s - {rate:.2f} rows/s"
         )
 
 
