@@ -1,5 +1,6 @@
 from django.db import models as dm
 
+from django_infra.db import enum
 from django_infra.db.models import UpdatableModel
 
 
@@ -58,7 +59,19 @@ class OrderManager(dm.Manager):
         return self.get_queryset().with_computed_total()
 
 
+class OrderStatus(enum.DBSafeChoices):
+    """Valid example enum for testing."""
+
+    PENDING_STATUS = enum.CodeChoice(code="PN")
+    PROCESSING = enum.CodeChoice(code="PR")
+    COMPLETED = enum.CodeChoice(code="CP")
+    CANCELLED = enum.CodeChoice(code="CN")
+
+
 class Order(UpdatableModel):
+    status = dm.TextField(
+        choices=OrderStatus.db_choices, default=str(OrderStatus.PENDING_STATUS)
+    )
     customer = dm.ForeignKey(Customer, on_delete=dm.CASCADE, related_name="orders")
     computed_total = dm.DecimalField(max_digits=12, decimal_places=2, null=True)
     created_at = dm.DateTimeField(auto_now_add=True)

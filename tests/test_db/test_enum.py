@@ -1,17 +1,10 @@
 import dataclasses
 
 import pytest
+from model_bakery import baker
 
 from django_infra.db import enum
-
-
-class OrderStatus(enum.DBSafeChoices):
-    """Valid example enum for testing."""
-
-    PENDING_STATUS = enum.CodeChoice(code="PN")
-    PROCESSING = enum.CodeChoice(code="PR")
-    COMPLETED = enum.CodeChoice(code="CP")
-    CANCELLED = enum.CodeChoice(code="CN")
+from tests.test_db.models import Order, OrderStatus
 
 
 @dataclasses.dataclass
@@ -104,6 +97,24 @@ def test_invalid_enum_with_custom_validation_type():
     assert "Enum member ITEM_C in InvalidAltStatus must inherit from" in str(
         excinfo.value
     )
+
+
+def test_duplicate_code_raises_err():
+    """Verify TypeError when using a custom validation type and providing wrong
+    member type."""
+    with pytest.raises(ValueError) as excinfo:
+
+        class InvalidAltStatus(enum.DBSafeChoices):
+            # This one is ok
+            ITEM_A = SpecificCode(code="A", extra_field=10)
+            # This one is not SpecificCode, should fail validation
+            ITEM_C = SpecificCode(code="A", extra_field=10)
+
+            @classmethod
+            def get_type_validation_cls(cls) -> type:
+                return SpecificCode
+
+    assert "duplicate values found" in str(excinfo.value)
 
 
 def test_db_choices_property():
@@ -221,3 +232,12 @@ def test_codechoice_immutability_assumption():
     c2 = enum.CodeChoice(code="TEST")
     assert c1 == c2
     assert id(c1) != id(c2)
+
+
+def test_load_from_db(db):
+    order = baker.make(Order, status=str(OrderStatus.PROCESSING))
+    order.refresh_from_db()
+    assert order.status == OrderStatus.PROCESSING
+    assert order.status == OrderStatus.PROCESSING.value.code
+    assert OrderStatus.PROCESSING == OrderStatus.from_code(order.status)
+    assert isinstance(OrderStatus.from_code(order.status), OrderStatus)

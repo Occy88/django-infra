@@ -51,6 +51,9 @@ class CodeChoice:
 
     code: str
 
+    def __str__(self):
+        return self.code
+
 
 class CodeChoices(ChoicesType):
     """Metaclass for DBSafeChoices or similar.
@@ -71,6 +74,15 @@ class CodeChoices(ChoicesType):
                     f"Enum member {member} in {clsname} must inherit from "
                     f"{type_validation_cls}, got type {member_type}"
                 )
+        # Pre-map codes to enum members, ensuring no duplicate codes exist
+        code_mapping = {}
+        for member in cls:
+            code = member.value.code
+            if code in code_mapping:
+                raise RuntimeError(f"Duplicate code '{code}' found in {clsname}")
+            code_mapping[code] = member
+        cls._code_to_member = code_mapping
+
         return cls
 
     @property
@@ -87,6 +99,11 @@ class DBSafeChoices(Choices, metaclass=CodeChoices):
     """A base class to implement DB safe choices with code validation."""
 
     @classmethod
+    def from_code(cls, code: str):
+        """Retrieve an enum member by its code stored in the database."""
+        return cls._code_to_member[code]
+
+    @classmethod
     def get_type_validation_cls(cls):
         return CodeChoice
 
@@ -99,3 +116,6 @@ class DBSafeChoices(Choices, metaclass=CodeChoices):
 
     def __hash__(self):
         return hash(self.value.code)
+
+    def __str__(self):
+        return str(self.value)
