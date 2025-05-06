@@ -38,7 +38,7 @@ coverage.coverage
 locale
 .pat
 build
-docker/volumes/db_active
+db_active
 .dev.*
 .python-version
 .nvim-dap.lua
