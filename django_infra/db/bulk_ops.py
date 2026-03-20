@@ -1,7 +1,7 @@
 import logging
 import time
 
-from django.db import connection
+from django.db import connection, transaction
 
 
 def bulk_update_queryset(*, qs, annotation_field_pairs, batch_size=100_000):
@@ -34,34 +34,39 @@ def bulk_update_queryset(*, qs, annotation_field_pairs, batch_size=100_000):
 
     last_pk = None
     while True:
-        batch_filter = {f"{pk_name}__gt": last_pk} if last_pk else {}
-        batch_qs = qs.filter(**batch_filter).values(pk_name, *annotation_keys)[
-            :batch_size
-        ]
-        compiler = batch_qs.query.get_compiler(using="default")
-        sub_sql, sub_params = compiler.as_sql()
-        set_clause = ", ".join(
-            f"{field} = sub.{ann}" for ann, field in annotation_field_pairs
-        )
+        with transaction.atomic():
+            batch_filter = {f"{pk_name}__gt": last_pk} if last_pk else {}
+            batch_qs = qs.filter(**batch_filter).values(pk_name, *annotation_keys)[
+                :batch_size
+            ]
+            compiler = batch_qs.query.get_compiler(using="default")
+            sub_sql, sub_params = compiler.as_sql()
 
-        sql = (
-            f"WITH batch AS ({sub_sql}) "
-            f"UPDATE {model._meta.db_table} AS t SET {set_clause} "
-            f"FROM batch AS sub "
-            f"WHERE t.{pk_name} = sub.{pk_name} "
-            f"RETURNING t.{pk_name}"
-        )
+            set_clause = ", ".join(
+                f"{field} = batch.{ann}" for ann, field in annotation_field_pairs
+            )
 
-        with connection.cursor() as cursor:
-            cursor.execute(sql, sub_params)
-            rows = cursor.fetchall()
-            batch_updated = len(rows)
+            sql = f"""
+            WITH batch AS ({sub_sql}),
+            upd AS (
+                UPDATE {model._meta.db_table} AS t
+                SET {set_clause}
+                FROM batch
+                WHERE t.{pk_name} = batch.{pk_name}
+                RETURNING t.{pk_name}
+            )
+            SELECT max({pk_name}) AS max_pk, count(*) AS n_updated
+            FROM upd;
+            """
+
+            with connection.cursor() as cursor:
+                cursor.execute(sql, sub_params)
+                row = cursor.fetchone()  # → 1‑row result, no large transfer
+                last_pk, batch_updated = row if row else (None, 0)
 
         if batch_updated == 0:
             break
-
         updated += batch_updated
-        last_pk = rows[-1][0]  # last pk from returned rows
         elapsed = time.time() - start_time
         rate = updated / elapsed if elapsed > 0 else 0
         logging.info(

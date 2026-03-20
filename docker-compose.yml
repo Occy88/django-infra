@@ -39,10 +39,10 @@ services:
 
   postgres:
     init: true
-    image: postgres:14-alpine
+    image: postgres:17-alpine
     container_name: postgres
     volumes:
-      - ./docker/volumes/db_active/:/var/lib/postgresql/data
+      - ./db_active/:/var/lib/postgresql/data
     ports:
       # if env var HOST_POSTGRES_PORT is defined, will expose on host machine
       # for easily connecting with external tools
