@@ -4,6 +4,10 @@ import abc
 import datetime
 import logging
 from functools import partial
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from django_infra.db.querysets.schedule import ScheduleQuerySet
 
 import pytz
 from django.contrib.postgres.constraints import ExclusionConstraint
