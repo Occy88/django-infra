@@ -5,6 +5,7 @@ from rest_framework.test import APIRequestFactory
 
 from django_infra.api import filters
 from django_infra.api.field_handlers import HandledFieldsMixin, handle_fields
+from django_infra.api.serializers import RequestDrivenFieldsSerializer
 from django_infra.api.views import (
     FilteredPartialResponseModelViewSet,
     PaginatedViewMixin,
@@ -33,15 +34,16 @@ class TestModelRelationsSerializer(serializers.ModelSerializer):
         model = TestModelRelations
 
 
-class HandledFieldSerializer(serializers.ModelSerializer):
-    handled_label = serializers.CharField(read_only=True)
+class HandledFieldSerializer(RequestDrivenFieldsSerializer):
+    fk_model = FKModelSerializer(read_only=True)
 
     class Meta:
-        fields = ("id", "char_field", "handled_label")
+        fields = ("id", "char_field")
         model = TestModelRelations
         computed_fields = {
-            "handled_label": serializers.CharField(read_only=True),
+            "handled_label": "handled_label",
         }
+        nested_fields = {"fk_model"}
 
 
 class OptimizedTestView(PaginatedViewMixin, FilteredPartialResponseModelViewSet):
@@ -133,6 +135,10 @@ class HandledFieldsTestView(
             handled_label=Value("handled", output_field=CharField())
         )
 
+    @handle_fields("fk_model")
+    def select_fk_model(self, queryset):
+        return queryset.select_related("fk_model")
+
 
 class TestFilters:
     def test_view_filter(self, db):
@@ -162,6 +168,27 @@ class TestFilters:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data.get("results")[0]["handled_label"] == "handled"
+
+    def test_request_driven_serializer_excludes_computed_fields_by_default(self, db):
+        baker.make(TestModelRelations, char_field="base text", _quantity=1)
+
+        request = APIRequestFactory().get("/?fields=id,char_field")
+        view_ = HandledFieldsTestView.as_view({"get": "list"})
+        response = view_(request)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "handled_label" not in response.data.get("results")[0]
+
+    def test_request_driven_serializer_includes_requested_nested_field(self, db):
+        fk_model = baker.make(FKTestModel, name="Related")
+        baker.make(TestModelRelations, char_field="base text", fk_model=fk_model)
+
+        request = APIRequestFactory().get("/?fields=id,fk_model&nested_fields=fkModel")
+        view_ = HandledFieldsTestView.as_view({"get": "list"})
+        response = view_(request)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data.get("results")[0]["fk_model"]["name"] == "Related"
 
     def test_icontains_filter_supports_exists_field(self, db):
         matching_fk = baker.make(FKTestModel, name="Needle relation")
