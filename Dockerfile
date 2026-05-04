@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     python3-pip \
     pipx \
-    python3.11-dev \
+    python3-dev \
     python-is-python3 \
     vim
 

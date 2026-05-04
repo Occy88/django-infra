@@ -6,6 +6,7 @@ from typing import List, Type, Union
 
 from django.db import models as dm
 from django_filters import rest_framework as filters
+from django_filters.constants import EMPTY_VALUES
 
 
 def field_supports_partial_matching(model, field_name):
@@ -115,22 +116,47 @@ class TypedFilterField(FilterField):
         super().__init__(internal=internal, external=external, exclude=exclude)
 
 
-class MultiInternalFilterField(FilterField):
-    internal: List[str]
+class ExistsField:
+    """Field definition for EXISTS subquery-based filtering.
+
+    Use this for efficient filtering across related models without creating
+    duplicate rows from JOINs. It is useful for reverse relations and for
+    multi-field search over related rows where JOINs would require distinct().
+    """
 
     def __init__(
         self,
         *,
-        internal: List[Union[dm.Field, str]],
+        model: type[dm.Model],
+        outer_ref: str,
+        fields: list[str],
+        back_link: str = None,
+    ):
+        self.model = model
+        self.outer_ref = outer_ref
+        self.fields = fields
+        self.back_link = back_link
+
+
+class MultiInternalFilterField(FilterField):
+    internal: List[str | ExistsField]
+
+    def __init__(
+        self,
+        *,
+        internal: List[Union[dm.Field, str, ExistsField]],
         external: str,
         exclude: bool = False,
     ):
-        self.internal = [self.normalise_internal(f) for f in internal]
+        self.internal = [
+            f if isinstance(f, ExistsField) else self.normalise_internal(f)
+            for f in internal
+        ]
         self.external = external
         super().__init__(internal="", exclude=exclude)
 
 
-FIELD_TYPES = FilterField | MultiInternalFilterField | TypedFilterField
+FIELD_TYPES = FilterField | MultiInternalFilterField | TypedFilterField | ExistsField
 
 
 class Filter:
@@ -222,6 +248,43 @@ class CustomFilter(Filter):
         return d
 
 
+class ExistsSubqueryFilter(Filter):
+    fields: List[TypedFilterField]
+
+    def __init__(self, *, fields, subquery_builder: typing.Callable):
+        """Filter using an EXISTS(subquery) built from a query param value.
+
+        The subquery_builder should return a queryset correlated to the outer
+        queryset, usually with django.db.models.OuterRef.
+        """
+        super().__init__(fields=fields, name="exists_subquery_filter")
+        self.subquery_builder = subquery_builder
+
+    def get_filter(self, qs, external_field: str, payload_value: typing.Any):
+        if payload_value in EMPTY_VALUES:
+            return qs
+        from django.db.models import Exists
+
+        subquery = self.subquery_builder(
+            value=payload_value, external_map=self._external_map
+        )
+        return qs.filter(Exists(subquery))
+
+    def to_meta(self):
+        d = dict()
+        for f in self.fields:
+            d.update(
+                {
+                    f"{f.external}": filters.Filter(
+                        field_name=f.external,
+                        method=f"filter_{f.external}",
+                    ),
+                    f"filter_{f.external}": self.get_filter,
+                }
+            )
+        return d
+
+
 class _NullLastOrderingFilter(filters.OrderingFilter):
     def get_ordering_value(self, param):
         descending = param.startswith("-")
@@ -284,6 +347,22 @@ class IContainsFilter(Filter):
         value = value.replace("\\*", ".*")
         return value
 
+    @staticmethod
+    def build_exists_condition(exists_field: ExistsField, lookup: str, value: str):
+        from django.db.models import Exists, OuterRef
+
+        q_objects = dm.Q()
+        for field in exists_field.fields:
+            q_objects |= dm.Q(**{f"{field}__{lookup}": value})
+
+        if exists_field.back_link:
+            filter_kwargs = {exists_field.back_link: OuterRef(exists_field.outer_ref)}
+        else:
+            filter_kwargs = {"pk": OuterRef(exists_field.outer_ref)}
+
+        subquery = exists_field.model.objects.filter(**filter_kwargs).filter(q_objects)
+        return Exists(subquery)
+
     def __init__(self, *, fields: List[MultiInternalFilterField], allow_wildcard=False):
         """Partial matching of string into one or more internal fields
         Examples
@@ -315,22 +394,38 @@ class IContainsFilter(Filter):
         # this is what is used in the query see filter fn.
         d = dict()
         external_map = self._external_map
+        allow_wildcard = self.allow_wildcard
+        format_regex = self.format_regex
+        build_exists_condition = self.build_exists_condition
         for f in self.fields:
 
             def filter(self_, queryset, name, value):
-                q_objects = dm.Q()
+                conditions = []
+                lookup = "icontains"
+                filter_value = value
+                if "*" in value and allow_wildcard:
+                    lookup = "iregex"
+                    filter_value = format_regex(value)
+
                 for internal in external_map.get(name).internal:
-                    fn = "icontains"
-                    if "*" in value and self.allow_wildcard:
-                        fn = "iregex"
-                        value = self.format_regex(value)
-                    if field_supports_partial_matching(queryset.model, internal):
-                        q_objects |= dm.Q(**{f"{internal}__{fn}": value})
-                    elif value.isnumeric():
+                    if isinstance(internal, ExistsField):
+                        conditions.append(
+                            build_exists_condition(internal, lookup, filter_value)
+                        )
+                    elif field_supports_partial_matching(queryset.model, internal):
+                        conditions.append(
+                            dm.Q(**{f"{internal}__{lookup}": filter_value})
+                        )
+                    elif filter_value.isnumeric():
                         # field does not support partial matching,
                         # most likely FK & val needs to be numeric.
-                        q_objects |= dm.Q(**{internal: value})
-                return queryset.filter(q_objects)
+                        conditions.append(dm.Q(**{internal: filter_value}))
+                if not conditions:
+                    return queryset
+                combined = conditions[0]
+                for condition in conditions[1:]:
+                    combined = combined | condition
+                return queryset.filter(combined)
 
             d.update(
                 {
