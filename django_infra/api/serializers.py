@@ -18,7 +18,9 @@ class RequestDrivenFieldsSerializerMeta(SerializerMetaclass):
     def __new__(cls, name, bases, attrs):
         meta = attrs.get("Meta")
         if meta is not None:
-            nested_fields = normalized_field_names(getattr(meta, "nested_fields", set()))
+            nested_fields = normalized_field_names(
+                getattr(meta, "nested_fields", set())
+            )
             fields = getattr(meta, "fields", [])
             if nested_fields and fields != "__all__":
                 meta.fields = list(dict.fromkeys([*fields, *nested_fields]))
@@ -93,9 +95,14 @@ class RequestDrivenFieldsSerializer(
             )
 
     def add_requested_computed_fields(self, fields, requested_fields: set[str]):
-        for field_name, field_definition in self.get_computed_fields_definition().items():
+        for (
+            field_name,
+            field_definition,
+        ) in self.get_computed_fields_definition().items():
             if field_name in requested_fields:
-                fields[field_name] = self.build_computed_field(field_name, field_definition)
+                fields[field_name] = self.build_computed_field(
+                    field_name, field_definition
+                )
         return fields
 
     def build_computed_field(self, field_name: str, field_definition):
